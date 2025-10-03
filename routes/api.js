@@ -1,7 +1,4 @@
-const crypto = require('crypto');
-function anonymizeIp(ip) {
-  return crypto.createHash('sha256').update(ip).digest('hex');
-}
+
 "use strict";
 // Importa el modelo de Stock desde models.js
 const StockModel = require("../models").Stock;
