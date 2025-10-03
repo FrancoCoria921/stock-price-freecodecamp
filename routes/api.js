@@ -44,11 +44,15 @@ async function getStock(stock) {
 }
 
 module.exports = function (app) {
-  //https://stock-price-checker-proxy.freecodecamp.rocks/v1/stock/TSLA/quote
+  const crypto = require('crypto');
+  function anonymizeIp(ip) {
+    return crypto.createHash('sha256').update(ip).digest('hex');
+  }
 
   app.route("/api/stock-prices").get(async function (req, res) {
     const { stock, like } = req.query;
     const anonIp = anonymizeIp(req.ip);
+
     if (Array.isArray(stock)) {
       const { symbol, latestPrice } = await getStock(stock[0]);
       const { symbol: symbol2, latestPrice: latestPrice2 } = await getStock(stock[1]);
@@ -71,6 +75,7 @@ module.exports = function (app) {
       res.json({ stockData });
       return;
     }
+
     const { symbol, latestPrice } = await getStock(stock);
     if (!symbol) {
       res.json({ stockData: { likes: like ? 1 : 0 } });
