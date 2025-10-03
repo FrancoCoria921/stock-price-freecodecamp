@@ -1,3 +1,7 @@
+const crypto = require('crypto');
+function anonymizeIp(ip) {
+  return crypto.createHash('sha256').update(ip).digest('hex');
+}
 "use strict";
 const StockModel = require("../models").Stock;
 const fetch = require("node-fetch");
@@ -44,45 +48,27 @@ module.exports = function (app) {
 
   app.route("/api/stock-prices").get(async function (req, res) {
     const { stock, like } = req.query;
+    const anonIp = anonymizeIp(req.ip);
     if (Array.isArray(stock)) {
-      console.log("stocks", stock);
-
       const { symbol, latestPrice } = await getStock(stock[0]);
-      const { symbol: symbol2, latestPrice: latestPrice2 } = await getStock(
-        stock[1]
-      );
+      const { symbol: symbol2, latestPrice: latestPrice2 } = await getStock(stock[1]);
 
-      const firststock = await saveStock(stock[0], like, req.ip);
-      const secondstock = await saveStock(stock[1], like, req.ip);
+      const firststock = await saveStock(stock[0], like, anonIp);
+      const secondstock = await saveStock(stock[1], like, anonIp);
 
       let stockData = [];
-      if (!symbol) {
-        stockData.push({
-          rel_likes: firststock.likes.length - secondstock.likes.length,
-        });
-      } else {
-        stockData.push({
-          stock: symbol,
-          price: latestPrice,
-          rel_likes: firststock.likes.length - secondstock.likes.length,
-        });
-      }
-
-      if (!symbol2) {
-        stockData.push({
-          rel_likes: secondstock.likes.length - firststock.likes.length,
-        });
-      } else {
-        stockData.push({
-          stock: symbol2,
-          price: latestPrice2,
-          rel_likes: secondstock.likes.length - firststock.likes.length,
-        });
-      }
-
-      res.json({
-        stockData,
+      stockData.push({
+        stock: symbol || stock[0],
+        price: latestPrice || null,
+        rel_likes: firststock.likes.length - secondstock.likes.length,
       });
+      stockData.push({
+        stock: symbol2 || stock[1],
+        price: latestPrice2 || null,
+        rel_likes: secondstock.likes.length - firststock.likes.length,
+      });
+
+      res.json({ stockData });
       return;
     }
     const { symbol, latestPrice } = await getStock(stock);
@@ -91,8 +77,7 @@ module.exports = function (app) {
       return;
     }
 
-    const oneStockData = await saveStock(symbol, like, req.ip);
-    console.log("One Stock Data", oneStockData);
+    const oneStockData = await saveStock(symbol, like, anonIp);
 
     res.json({
       stockData: {
