@@ -57,7 +57,7 @@ module.exports = function (app) {
   }
 
   // Ruta principal para consultar precios y likes de acciones
-  app.route("/api/stock-prices").get(async function (req, res) {
+  app.route("/api/stock-prices/").get(async function (req, res) {
     const { stock, like } = req.query;
     const anonIp = anonymizeIp(req.ip);
 
