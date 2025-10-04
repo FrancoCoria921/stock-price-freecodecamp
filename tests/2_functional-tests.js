@@ -10,7 +10,7 @@ chai.use(chaiHttp);
 // Viewing two stocks: GET request to /api/stock-prices/
 // Viewing two stocks and liking them: GET request to /api/stock-prices/
 suite("Functional Tests", function () {
-  suite("5 functional get request tests", function () {
+  suite("GET /api/stock-prices/ => stockData object", function () {
     test("Viewing one stock: GET request to /api/stock-prices/", function (done) {
       chai
         .request(server)
