@@ -63,26 +63,29 @@ module.exports = function (app) {
 
     // Si se consultan dos acciones
     if (Array.isArray(stock)) {
-      const { symbol, latestPrice } = await getStock(stock[0]);
-      const { symbol: symbol2, latestPrice: latestPrice2 } = await getStock(stock[1]);
+      // Obtener datos de ambas acciones
+      const stockOne = stock[0];
+      const stockTwo = stock[1];
+      const dataOne = await getStock(stockOne);
+      const dataTwo = await getStock(stockTwo);
 
-      // Guarda los likes por IP anonimizada
-      const firststock = await saveStock(stock[0], like, anonIp);
-      const secondstock = await saveStock(stock[1], like, anonIp);
+      // Guardar likes por IP anonimizada
+      const firstStockDoc = await saveStock(stockOne, like, anonIp);
+      const secondStockDoc = await saveStock(stockTwo, like, anonIp);
 
-      let stockData = [];
-      stockData.push({
-        stock: symbol || stock[0],
-        price: latestPrice || null,
-        rel_likes: firststock.likes.length - secondstock.likes.length,
-      });
-      stockData.push({
-        stock: symbol2 || stock[1],
-        price: latestPrice2 || null,
-        rel_likes: secondstock.likes.length - firststock.likes.length,
-      });
-
-      // Devuelve la información de ambas acciones
+      // Formato exacto requerido por los tests
+      const stockData = [
+        {
+          stock: dataOne.symbol || stockOne,
+          price: typeof dataOne.latestPrice === 'number' ? dataOne.latestPrice : null,
+          rel_likes: firstStockDoc.likes.length - secondStockDoc.likes.length
+        },
+        {
+          stock: dataTwo.symbol || stockTwo,
+          price: typeof dataTwo.latestPrice === 'number' ? dataTwo.latestPrice : null,
+          rel_likes: secondStockDoc.likes.length - firstStockDoc.likes.length
+        }
+      ];
       res.json({ stockData });
       return;
     }
